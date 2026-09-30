@@ -34,9 +34,9 @@ jobs:
     - name: Setup Android SDK and NDK manually
       run: |
         ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-        ANDROID_NDK_HOME=$HOME/.buildozer/android/platform/android-ndk-r25b
+        PLATFORM_DIR=$HOME/.buildozer/android/platform
         
-        mkdir -p $ANDROID_HOME $ANDROID_NDK_HOME
+        mkdir -p $ANDROID_HOME $PLATFORM_DIR
         
         # Download and setup command line tools
         mkdir -p $ANDROID_HOME/cmdline-tools
@@ -51,10 +51,10 @@ jobs:
         mkdir -p $ANDROID_HOME/licenses
         echo -e "8933b5222d1927201a47f01507133a3b2936557d\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a637b3749d107399f6552647494f7760b" > $ANDROID_HOME/licenses/android-sdk-license
 
-        # Download NDK r25b directly to avoid buildozer auto-download issues
+        # Download and extract NDK r25b cleanly without path conflict
         wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O /tmp/ndk.zip
-        unzip -q /tmp/ndk.zip -d $HOME/.buildozer/android/platform/
-        mv $HOME/.buildozer/android/platform/android-ndk-r25b $ANDROID_NDK_HOME
+        rm -rf $PLATFORM_DIR/android-ndk-r25b
+        unzip -q /tmp/ndk.zip -d $PLATFORM_DIR
 
     - name: Build with Buildozer
       env:
@@ -63,12 +63,10 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-        # Force clean environment variables for buildozer
         ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
         ANDROID_NDK: /home/runner/.buildozer/android/platform/android-ndk-r25b
         ANDROID_NDK_HOME: /home/runner/.buildozer/android/platform/android-ndk-r25b
       run: |
-        # Unset conflicting global runner vars
         unset ANDROID_SDK_ROOT
         unset ANDROIDSDK
         unset ANDROIDNDK
