@@ -39,13 +39,16 @@ jobs:
         DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       run: |
-        # Manually download and setup Android command-line tools so sdkmanager exists
         ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
         mkdir -p $ANDROID_HOME/cmdline-tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdtools.zip
         unzip -q /tmp/cmdtools.zip -d /tmp/cmdtools
         mkdir -p $ANDROID_HOME/cmdline-tools/latest
         mv /tmp/cmdtools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
+        
+        # Create legacy tools directory and symlink so buildozer finds sdkmanager immediately
+        mkdir -p $ANDROID_HOME/tools/bin
+        ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
         
         # Accept licenses
         mkdir -p $ANDROID_HOME/licenses
