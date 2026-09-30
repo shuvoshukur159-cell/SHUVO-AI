@@ -31,45 +31,50 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install buildozer cython==0.29.33
 
-    - name: Clean Previous Build Cache
-      run: |
-        # Clear out any corrupted buildozer/p4a cache states
-        rm -rf .buildozer/android/platform/build-*
-        buildozer clean || true
-
-    - name: Pre-accept SDK Licenses & Build
-      env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+    - name: Setup Android SDK and NDK manually
       run: |
         ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+        ANDROID_NDK_HOME=$HOME/.buildozer/android/platform/android-ndk-r25b
+        
+        mkdir -p $ANDROID_HOME $ANDROID_NDK_HOME
+        
+        # Download and setup command line tools
         mkdir -p $ANDROID_HOME/cmdline-tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdtools.zip
         unzip -q /tmp/cmdtools.zip -d /tmp/cmdtools
         mkdir -p $ANDROID_HOME/cmdline-tools/latest
         mv /tmp/cmdtools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
         
-        # Create legacy tools directory and symlink
+        # Setup SDK manager symlink & licenses
         mkdir -p $ANDROID_HOME/tools/bin
         ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
-        
-        # Accept licenses
         mkdir -p $ANDROID_HOME/licenses
         echo -e "8933b5222d1927201a47f01507133a3b2936557d\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a637b3749d107399f6552647494f7760b" > $ANDROID_HOME/licenses/android-sdk-license
 
-        # Unset all conflicting global Android environment variables from GitHub runner
-        unset ANDROID_NDK_HOME
+        # Download NDK r25b directly to avoid buildozer auto-download issues
+        wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O /tmp/ndk.zip
+        unzip -q /tmp/ndk.zip -d $HOME/.buildozer/android/platform/
+        mv $HOME/.buildozer/android/platform/android-ndk-r25b $ANDROID_NDK_HOME
+
+    - name: Build with Buildozer
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+        # Force clean environment variables for buildozer
+        ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
+        ANDROID_NDK: /home/runner/.buildozer/android/platform/android-ndk-r25b
+        ANDROID_NDK_HOME: /home/runner/.buildozer/android/platform/android-ndk-r25b
+      run: |
+        # Unset conflicting global runner vars
         unset ANDROID_SDK_ROOT
         unset ANDROIDSDK
         unset ANDROIDNDK
-        unset ANDROID_NDK
         unset ANDROID_NDK_ROOT
         unset ANDROID_NDK_LATEST_HOME
 
-        # Run buildozer cleanly with verbose mode
         buildozer -v android debug
 
     - name: Upload APK
