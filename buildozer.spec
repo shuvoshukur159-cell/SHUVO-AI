@@ -21,6 +21,9 @@ version = 1.0
 # (list) Application requirements
 requirements = python3,kivy,requests
 
+# (str) Custom source code for python-for-android (Fixes hostpython3 mismatch)
+p4a.branch = master
+
 # (str) Supported orientation
 orientation = portrait
 
