@@ -28,13 +28,13 @@ CREATOR_NAME = "Shuvo"
 MEMORY_FILE = "shuvo_ai_v16_memory.json"
 
 # ============================================================
-# 🔑 Apnar 5-ti API Key (GitHub Secrets e na thakle ekhane bosaben)
+# 🔑 API Keys (নিরাপদ উপায়: Environment Variable থেকে নেওয়া হবে)
 # ============================================================
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KL4INQNKIog_JUi7xzdRgpxZSLGapV68ex3amWbUGX8g")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "gsk_1jKGa2pGQRiy3roIjvgjWGdyb3FYjVGUPBEPWdR9wA9tSTsp")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "SBMo7MVQVD11604JA9uGL5MIFd9fVzfFuGTsaIEVWnd2OaLHLeKMYPIaayzdgWw3DSng02srlFT3BlbkFJ0oIKbjP6bQbkvPUvvlYo3HycYaxdxUJ1BtiGqDOt4As3syRpmBsL8lyBHkL3vPoXYIU0xocbgA")
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "Sk-f3daff53d53642f294b132c372d5cbcf")
-CLAUDE_API_KEY = os.environ.get("CLAUDE_API_KEY", "Sk-ant-api03-rSTFywkDScxy-agWh6rrPzspt_nFqrBBFu8_5a_wm7v6UErNqiEzc1fj7uyjFIRqLdVkkFxOF7zpRXt7CBKbeg-YSRZJAAA")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+CLAUDE_API_KEY = os.environ.get("CLAUDE_API_KEY", "")
 
 ACTIVE_ENGINE = "1"
 SYSTEM_PROMPT = f"You are {AI_NAME}, a smart & friendly AI created by {CREATOR_NAME}. Answer naturally in Bangla, Banglish, or English depending on user input."
@@ -57,7 +57,7 @@ def check_internet():
 # 2. 5-ENGINE AI INTEGRATION FUNCTIONS
 # ------------------------------------------------------------
 def call_gemini(prompt):
-    if not GEMINI_API_KEY or "YOUR_" in GEMINI_API_KEY: return None
+    if not GEMINI_API_KEY: return None
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = json.dumps({"contents": [{"parts": [{"text": f"{SYSTEM_PROMPT}\nUser Query: {prompt}"}]}]}).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method='POST')
@@ -68,7 +68,7 @@ def call_gemini(prompt):
     except Exception: return None
 
 def call_groq(prompt):
-    if not GROQ_API_KEY or "YOUR_" in GROQ_API_KEY: return None
+    if not GROQ_API_KEY: return None
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
     payload = json.dumps({
@@ -82,7 +82,7 @@ def call_groq(prompt):
     except Exception: return None
 
 def call_openai(prompt):
-    if not OPENAI_API_KEY or "YOUR_" in OPENAI_API_KEY: return None
+    if not OPENAI_API_KEY: return None
     url = "https://api.openai.com/v1/chat/completions"
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
     payload = json.dumps({
@@ -96,7 +96,7 @@ def call_openai(prompt):
     except Exception: return None
 
 def call_deepseek(prompt):
-    if not DEEPSEEK_API_KEY or "YOUR_" in DEEPSEEK_API_KEY: return None
+    if not DEEPSEEK_API_KEY: return None
     url = "https://api.deepseek.com/chat/completions"
     headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
     payload = json.dumps({
@@ -110,7 +110,7 @@ def call_deepseek(prompt):
     except Exception: return None
 
 def call_claude(prompt):
-    if not CLAUDE_API_KEY or "YOUR_" in CLAUDE_API_KEY: return None
+    if not CLAUDE_API_KEY: return None
     url = "https://api.anthropic.com/v1/messages"
     headers = {"x-api-key": CLAUDE_API_KEY, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
     payload = json.dumps({
@@ -272,22 +272,22 @@ def ai_reply(user):
     ai_res = ask_ai_engines(user)
     if ai_res: return ai_res
 
-    # Wikipedia search fallback (Only if specific keywords match)
+    # Wikipedia search fallback
     if any(k in text for k in ["wiki", "wikipedia", "what is", "who is", "ki", "kake bole"]):
         wiki_res = search_wikipedia(user)
         if wiki_res: return wiki_res
 
-    return f"Dukhito Boss, ami '{user}' bujhte parini. Ebong API keys na thakar karone AI engine o kaj korche na."
+    return f"Dukhito Boss, ami '{user}' bujhte parini. API key set na thakle AI engine kaj korbe na."
 
 # ------------------------------------------------------------
-# 7. KIVY APPLICATION INTERFACE (THREADED FOR SMOOTH UI)
+# 7. KIVY APPLICATION INTERFACE (THREADED & AUTO-WRAPPED)
 # ------------------------------------------------------------
 class MainApp(App):
     def build(self):
         self.title = AI_NAME
-        
+
         main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        
+
         self.scroll = ScrollView(size_hint=(1, 0.85))
         self.chat_logs = Label(
             text=f"🤖 {AI_NAME} System Online!\nCreated by {CREATOR_NAME}\n" + "="*30 + "\n",
@@ -296,19 +296,22 @@ class MainApp(App):
             valign='top',
             markup=True
         )
+        # Fix for Text Wrapping on Mobile Screen
+        self.chat_logs.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))
         self.chat_logs.bind(texture_size=self.update_label_height)
+        
         self.scroll.add_widget(self.chat_logs)
         main_layout.add_widget(self.scroll)
-        
+
         input_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.15), spacing=5)
         self.user_input = TextInput(hint_text="Type a message...", multiline=False)
         self.send_btn = Button(text="Send", size_hint=(0.25, 1))
         self.send_btn.bind(on_press=self.send_message)
-        
+
         input_layout.add_widget(self.user_input)
         input_layout.add_widget(self.send_btn)
         main_layout.add_widget(input_layout)
-        
+
         return main_layout
 
     def update_label_height(self, instance, value):
@@ -316,7 +319,7 @@ class MainApp(App):
         self.scroll.scroll_y = 0
 
     def append_response(self, response_text):
-        self.chat_logs.text += f"{AI_NAME}: {response_text}\n"
+        self.chat_logs.text += f"{AI_NAME}: {response_text}\n\n"
         self.send_btn.disabled = False
 
     def process_ai_in_background(self, text):
@@ -326,12 +329,11 @@ class MainApp(App):
     def send_message(self, instance):
         text = self.user_input.text.strip()
         if not text: return
-        
+
         self.chat_logs.text += f"\nYou: {text}\n"
         self.user_input.text = ""
         self.send_btn.disabled = True
-        
-        # Run AI response in a separate thread so UI does not freeze
+
         threading.Thread(target=self.process_ai_in_background, args=(text,), daemon=True).start()
 
 if __name__ == '__main__':
