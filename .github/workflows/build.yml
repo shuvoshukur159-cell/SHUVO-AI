@@ -46,7 +46,7 @@ jobs:
         mkdir -p $ANDROID_HOME/cmdline-tools/latest
         mv /tmp/cmdtools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
         
-        # Create legacy tools directory and symlink so sdkmanager works flawlessly
+        # Create legacy tools directory and symlink
         mkdir -p $ANDROID_HOME/tools/bin
         ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
         
@@ -54,11 +54,14 @@ jobs:
         mkdir -p $ANDROID_HOME/licenses
         echo -e "8933b5222d1927201a47f01507133a3b2936557d\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a637b3749d107399f6552647494f7760b" > $ANDROID_HOME/licenses/android-sdk-license
 
-        # Unset conflicting runner environment variables
+        # Unset all conflicting global Android environment variables from GitHub runner
         unset ANDROID_NDK_HOME
         unset ANDROID_SDK_ROOT
         unset ANDROIDSDK
         unset ANDROIDNDK
+        unset ANDROID_NDK
+        unset ANDROID_NDK_ROOT
+        unset ANDROID_NDK_LATEST_HOME
 
         # Run buildozer cleanly
         buildozer -v android debug
