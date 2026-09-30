@@ -15,7 +15,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - name: Install System Dependencies
       run: |
@@ -24,8 +24,8 @@ jobs:
 
     - name: Install Python Dependencies
       run: |
-        pip install --upgrade pip
-        pip install buildozer cython
+        python -m pip install --upgrade pip
+        pip install "cython<3.0.0" buildozer
 
     - name: Build with Buildozer
       run: yes | buildozer -v android debug
