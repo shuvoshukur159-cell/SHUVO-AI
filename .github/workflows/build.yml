@@ -44,7 +44,6 @@ jobs:
         mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
         echo -e "8933b5222d1927201a47f01507133a3b2936557d\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a637b3749d107399f6552647494f7760b" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         
-        buildozer android clean
         buildozer -v android debug
 
     - name: Upload APK
