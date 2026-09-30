@@ -31,6 +31,12 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install buildozer cython==0.29.33
 
+    - name: Clean Previous Build Cache
+      run: |
+        # Clear out any corrupted buildozer/p4a cache states
+        rm -rf .buildozer/android/platform/build-*
+        buildozer clean || true
+
     - name: Pre-accept SDK Licenses & Build
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -63,7 +69,7 @@ jobs:
         unset ANDROID_NDK_ROOT
         unset ANDROID_NDK_LATEST_HOME
 
-        # Run buildozer cleanly
+        # Run buildozer cleanly with verbose mode
         buildozer -v android debug
 
     - name: Upload APK
