@@ -1,5 +1,3 @@
-[app]
-
 # (str) Title of your application
 title = Shuvo AI
 
@@ -31,10 +29,10 @@ fullscreen = 0
 android.permissions = INTERNET
 
 # (int) Target Android API
-android.api = 34
+android.api = 33
 
 # (int) Minimum API supported
-android.minapi = 24
+android.minapi = 21
 
 # (int) Android NDK version
 android.ndk = 25b
