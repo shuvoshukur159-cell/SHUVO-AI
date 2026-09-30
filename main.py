@@ -1,6 +1,6 @@
 # ============================================================
-#         🤖 SHUVO AI - MULTI-ENGINE V16 ULTIMATE
-#   Pydroid 3 | 5 AI Engines + Wifi Check + Hybrid Brain
+#         🤖 SHUVO AI - MULTI-ENGINE V16 ULTIMATE (KIVY GUI)
+#   Buildozer / Android Ready | Multi-AI Engine Integration
 # ============================================================
 
 import datetime
@@ -13,36 +13,37 @@ import urllib.parse
 import urllib.error
 import os
 import webbrowser
+import threading
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.label import Label
+from kivy.clock import Clock
 
 AI_NAME = "Shuvo AI"
 CREATOR_NAME = "Shuvo"
-
 MEMORY_FILE = "shuvo_ai_v16_memory.json"
 
 # ============================================================
-# 🔑 Apnar 5-ti API Key
+# 🔑 Apnar 5-ti API Key (GitHub Secrets e na thakle ekhane bosaben)
 # ============================================================
-GEMINI_API_KEY = "AQ.Ab8RN6KL4INQNKIog_JUi7xzdRgpxZSLGapV68ex3amWbUGX8g"
-GROQ_API_KEY = "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"
-OPENAI_API_KEY = "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"
-DEEPSEEK_API_KEY = "Sk-f3daff53d53642f294b132c372d5cbcf"
-CLAUDE_API_KEY = "Sk-ant-api03-rSTFywkDScxy-agWh6rrPzspt_nFqrBBFu8_5a_wm7v6UErNqiEzc1fj7uyjFIRqLdVkkFxOF7zpRXt7CBKbeg-YSRZJAAA"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KL4INQNKIog_JUi7xzdRgpxZSLGapV68ex3amWbUGX8g")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "gsk_1jKGa2pGQRiy3roIjvgjWGdyb3FYjVGUPBEPWdR9wA9tSTsp")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "SBMo7MVQVD11604JA9uGL5MIFd9fVzfFuGTsaIEVWnd2OaLHLeKMYPIaayzdgWw3DSng02srlFT3BlbkFJ0oIKbjP6bQbkvPUvvlYo3HycYaxdxUJ1BtiGqDOt4As3syRpmBsL8lyBHkL3vPoXYIU0xocbgA")
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "Sk-f3daff53d53642f294b132c372d5cbcf")
+CLAUDE_API_KEY = os.environ.get("CLAUDE_API_KEY", "Sk-ant-api03-rSTFywkDScxy-agWh6rrPzspt_nFqrBBFu8_5a_wm7v6UErNqiEzc1fj7uyjFIRqLdVkkFxOF7zpRXt7CBKbeg-YSRZJAAA")
 
-# Active Engine Selector (1=Gemini, 2=Groq, 3=OpenAI, 4=DeepSeek, 5=Claude)
 ACTIVE_ENGINE = "1"
-
 SYSTEM_PROMPT = f"You are {AI_NAME}, a smart & friendly AI created by {CREATOR_NAME}. Answer naturally in Bangla, Banglish, or English depending on user input."
 
 # ------------------------------------------------------------
-# 1. NETWORK & INTERNET CONNECTIVITY CHECKER (UPDATED)
+# 1. NETWORK & INTERNET CONNECTIVITY CHECKER
 # ------------------------------------------------------------
 def check_internet():
-    # Wi-Fi ev Mobile Data ubhoyer jonno multi-server fallback check
-    test_urls = [
-        "https://1.1.1.1",
-        "https://8.8.8.8",
-        "https://www.google.com"
-    ]
+    test_urls = ["https://1.1.1.1", "https://8.8.8.8", "https://www.google.com"]
     for url in test_urls:
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -55,20 +56,19 @@ def check_internet():
 # ------------------------------------------------------------
 # 2. 5-ENGINE AI INTEGRATION FUNCTIONS
 # ------------------------------------------------------------
-
-# 1. Google Gemini
 def call_gemini(prompt):
-    if not GEMINI_API_KEY: return None
+    if not GEMINI_API_KEY or "YOUR_" in GEMINI_API_KEY: return None
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = json.dumps({"contents": [{"parts": [{"text": f"{SYSTEM_PROMPT}\nUser Query: {prompt}"}]}]}).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method='POST')
-    with urllib.request.urlopen(req, timeout=15) as response:
-        res_data = json.loads(response.read().decode())
-        return res_data['candidates'][0]['content']['parts'][0]['text']
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            res_data = json.loads(response.read().decode())
+            return res_data['candidates'][0]['content']['parts'][0]['text']
+    except Exception: return None
 
-# 2. Meta Llama 3 via Groq
 def call_groq(prompt):
-    if not GROQ_API_KEY: return None
+    if not GROQ_API_KEY or "YOUR_" in GROQ_API_KEY: return None
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
     payload = json.dumps({
@@ -76,12 +76,13 @@ def call_groq(prompt):
         "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
     }).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers=headers, method='POST')
-    with urllib.request.urlopen(req, timeout=15) as response:
-        return json.loads(response.read().decode())["choices"][0]["message"]["content"]
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode())["choices"][0]["message"]["content"]
+    except Exception: return None
 
-# 3. OpenAI ChatGPT
 def call_openai(prompt):
-    if not OPENAI_API_KEY: return None
+    if not OPENAI_API_KEY or "YOUR_" in OPENAI_API_KEY: return None
     url = "https://api.openai.com/v1/chat/completions"
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
     payload = json.dumps({
@@ -89,12 +90,13 @@ def call_openai(prompt):
         "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
     }).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers=headers, method='POST')
-    with urllib.request.urlopen(req, timeout=15) as response:
-        return json.loads(response.read().decode())["choices"][0]["message"]["content"]
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode())["choices"][0]["message"]["content"]
+    except Exception: return None
 
-# 4. DeepSeek
 def call_deepseek(prompt):
-    if not DEEPSEEK_API_KEY: return None
+    if not DEEPSEEK_API_KEY or "YOUR_" in DEEPSEEK_API_KEY: return None
     url = "https://api.deepseek.com/chat/completions"
     headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
     payload = json.dumps({
@@ -102,12 +104,13 @@ def call_deepseek(prompt):
         "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
     }).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers=headers, method='POST')
-    with urllib.request.urlopen(req, timeout=15) as response:
-        return json.loads(response.read().decode())["choices"][0]["message"]["content"]
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode())["choices"][0]["message"]["content"]
+    except Exception: return None
 
-# 5. Anthropic Claude
 def call_claude(prompt):
-    if not CLAUDE_API_KEY: return None
+    if not CLAUDE_API_KEY or "YOUR_" in CLAUDE_API_KEY: return None
     url = "https://api.anthropic.com/v1/messages"
     headers = {"x-api-key": CLAUDE_API_KEY, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
     payload = json.dumps({
@@ -115,13 +118,14 @@ def call_claude(prompt):
         "system": SYSTEM_PROMPT, "messages": [{"role": "user", "content": prompt}]
     }).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers=headers, method='POST')
-    with urllib.request.urlopen(req, timeout=15) as response:
-        return json.loads(response.read().decode())["content"][0]["text"]
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode())["content"][0]["text"]
+    except Exception: return None
 
-# MASTER AI BRAIN ROUTER (WITH HYBRID FALLBACK)
 def ask_ai_engines(prompt):
     if not check_internet():
-        return "⚠️ Network connection paowa jayni! Onugroh kore Wi-Fi ba Mobile Data on korun."
+        return "⚠️ Network connection paowa jayni! Wi-Fi/Mobile Data check করুন।"
 
     engine_map = {
         "1": ("Gemini", call_gemini),
@@ -131,14 +135,12 @@ def ask_ai_engines(prompt):
         "5": ("Claude", call_claude)
     }
 
-    # 1st Priority: Selected Active Engine
     current_name, func = engine_map.get(ACTIVE_ENGINE, ("Gemini", call_gemini))
     try:
         res = func(prompt)
         if res: return res
     except Exception: pass
 
-    # Auto Fallback to other engines if preferred one fails
     for eng_id, (name, engine_func) in engine_map.items():
         if eng_id != ACTIVE_ENGINE:
             try:
@@ -154,9 +156,9 @@ def ask_ai_engines(prompt):
 def open_in_browser(url):
     try:
         webbrowser.open(url)
-        return f"🌐 Chrome / Browser-e open kora hocche: {url}"
+        return f"🌐 Browser open kora hocche: {url}"
     except Exception as e:
-        return f"⚠️ Browser open korte somossa hoyeche: {e}"
+        return f"⚠️ Browser open korte somossa: {e}"
 
 def google_search_web(query):
     encoded = urllib.parse.quote(query)
@@ -171,9 +173,9 @@ def search_wikipedia(query):
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
             if "extract" in data:
-                return f"🌐 **Wikipedia Knowledge ({data.get('title', query)})**:\n{data['extract']}"
-    except: pass
-    return f"🔍 '{query}' somporke kono tothyo paowa jayni."
+                return f"🌐 Wikipedia ({data.get('title', query)}):\n{data['extract']}"
+    except Exception: pass
+    return None
 
 # ------------------------------------------------------------
 # 4. UTILITY & MATHEMATICS
@@ -183,7 +185,7 @@ def calculate_math(expr):
     try:
         if "sqrt" in expr: return math.sqrt(float(expr.replace("sqrt", "").strip()))
         if re.fullmatch(r"[0-9+\-*/().%\s*]+", expr): return eval(expr, {"__builtins__": None}, {})
-    except: return None
+    except Exception: return None
     return None
 
 def get_time(): return datetime.datetime.now().strftime("%I:%M:%S %p")
@@ -197,14 +199,14 @@ def load_memory():
         try:
             with open(MEMORY_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except: pass
+        except Exception: pass
     return {"expenses": [], "todos": []}
 
 def save_memory(mem_data):
     try:
         with open(MEMORY_FILE, "w", encoding="utf-8") as f:
             json.dump(mem_data, f, ensure_ascii=False, indent=2)
-    except: pass
+    except Exception: pass
 
 memory = load_memory()
 
@@ -215,20 +217,18 @@ def ai_reply(user):
     global ACTIVE_ENGINE
     text = user.lower().strip()
 
-    if text in ["bye", "exit", "quit", "bondho", "viday", "allah hafiz"]:
+    if text in ["bye", "exit", "quit", "bondho", "viday"]:
         save_memory(memory)
-        return "__EXIT__"
+        return "Bye Boss! All data saved."
 
-    # ENGINE SWITCHING
     clean_input = text.replace(" ", "")
     if clean_input.startswith("engine") or clean_input.startswith("engin"):
         eng_num = ''.join(filter(str.isdigit, clean_input))
         if eng_num in ["1", "2", "3", "4", "5"]:
             ACTIVE_ENGINE = eng_num
-            engines = {"1": "Google Gemini", "2": "Meta Llama 3 (Groq)", "3": "OpenAI ChatGPT", "4": "DeepSeek", "5": "Claude"}
+            engines = {"1": "Google Gemini", "2": "Meta Llama 3", "3": "OpenAI", "4": "DeepSeek", "5": "Claude"}
             return f"✅ Active Engine Set To {eng_num}: {engines[eng_num]}"
 
-    # CHROME & WEB OPEN COMMANDS
     if text.startswith("open "):
         site = text.replace("open ", "").strip()
         if site == "facebook": return open_in_browser("https://www.facebook.com")
@@ -237,76 +237,102 @@ def ai_reply(user):
         if site == "chatgpt": return open_in_browser("https://chatgpt.com")
         return open_in_browser(f"https://www.{site}.com")
 
-    # GOOGLE SEARCH COMMAND
     if text.startswith("google search:") or text.startswith("google "):
         q = text.replace("google search:", "").replace("google ", "").strip()
         return google_search_web(q)
 
-    # WI-FI & NETWORK STATUS
     if "wifi" in text or "internet" in text or "net" in text:
         status = "✅ Connected" if check_internet() else "❌ Disconnected"
-        return f"🌐 **Network Status**: {status}"
+        return f"🌐 Network Status: {status}"
 
-    # TODO LIST MANAGEMENT
     if text.startswith("todo:"):
         memory["todos"].append(text.replace("todo:", "").strip())
         save_memory(memory)
         return "✅ Todo List-e jog kora hoyeche!"
 
     if text in ["show todo", "my todo", "todo"]:
-        return "📋 **Todo List**:\n" + "\n".join([f"{i+1}. {t}" for i, t in enumerate(memory["todos"])]) if memory["todos"] else "Kono Todo khunje paowa jayni."
+        return "📋 Todo List:\n" + "\n".join([f"{i+1}. {t}" for i, t in enumerate(memory["todos"])]) if memory["todos"] else "Kono Todo khunje paowa jayni."
 
-    # TIME & DATE
     if text in ["time", "date", "somoy", "shomoy", "tarikh"]:
         return f"🕐 Bortoman somoy: {get_time()}" if any(x in text for x in ["time", "somoy", "shomoy"]) else f"📅 Ajker tarikh: {get_date()}"
 
-    # MATH EVALUATION
     m_ans = calculate_math(text)
-    if m_ans is not None: return f"🧮 **Ganitik folafol**: {m_ans}"
+    if m_ans is not None: return f"🧮 Ganitik folafol: {m_ans}"
 
-    # 🌟 PRIMARY BRAIN: 5 MULTI-ENGINE AI (Prioritized)
-    ai_res = ask_ai_engines(user)
-    if ai_res:
-        return ai_res
-
-    # LOCAL QUICK FALLBACK RESPONSES
     if any(w in text for w in ["kemon aso", "kemon acho", "how are you"]):
-        return f"Ami khub bhalo achi, Boss! 😄 Apni kemon achen?"
+        return "Ami khub bhalo achi, Boss! 😄 Apni kemon achen?"
 
-    if any(p in text for p in ["banaise", "created you", "creator", "ke banaiyeche"]):
+    if any(p in text for p in ["banaise", "created you", "creator"]):
         return f"Amake toiri korechen {CREATOR_NAME}! 👑"
 
     if any(w in text for w in ["hello", "hi", "hey"]):
         return f"Hello Boss! 😄 Ami {AI_NAME}। Bolun apnake kivabe shahajjo korte pari?"
 
-    # FINAL FALLBACK TO WIKIPEDIA
-    return search_wikipedia(user)
+    # Try AI Engine first
+    ai_res = ask_ai_engines(user)
+    if ai_res: return ai_res
 
-# ============================================================
-#                     START AI V16 SYSTEM
-# ============================================================
-net_status = "Connected ✅" if check_internet() else "Disconnected ❌"
-print("\n" + "=" * 60)
-print(f"      🤖 {AI_NAME} - MULTI-ENGINE V16 ULTIMATE")
-print(f"      Created by: {CREATOR_NAME} | Network: {net_status}")
-print("      Commands: 'engine 1' to 'engine 5' to switch AI Engine")
-print("=" * 60)
-print(f"\nAI: Hello Boss! System is online and fully connected.\n")
+    # Wikipedia search fallback (Only if specific keywords match)
+    if any(k in text for k in ["wiki", "wikipedia", "what is", "who is", "ki", "kake bole"]):
+        wiki_res = search_wikipedia(user)
+        if wiki_res: return wiki_res
 
-while True:
-    try:
-        user = input("You: ")
-        if not user.strip(): continue
+    return f"Dukhito Boss, ami '{user}' bujhte parini. Ebong API keys na thakar karone AI engine o kaj korche na."
 
-        response = ai_reply(user)
+# ------------------------------------------------------------
+# 7. KIVY APPLICATION INTERFACE (THREADED FOR SMOOTH UI)
+# ------------------------------------------------------------
+class MainApp(App):
+    def build(self):
+        self.title = AI_NAME
+        
+        main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        
+        self.scroll = ScrollView(size_hint=(1, 0.85))
+        self.chat_logs = Label(
+            text=f"🤖 {AI_NAME} System Online!\nCreated by {CREATOR_NAME}\n" + "="*30 + "\n",
+            size_hint_y=None,
+            halign='left',
+            valign='top',
+            markup=True
+        )
+        self.chat_logs.bind(texture_size=self.update_label_height)
+        self.scroll.add_widget(self.chat_logs)
+        main_layout.add_widget(self.scroll)
+        
+        input_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.15), spacing=5)
+        self.user_input = TextInput(hint_text="Type a message...", multiline=False)
+        self.send_btn = Button(text="Send", size_hint=(0.25, 1))
+        self.send_btn.bind(on_press=self.send_message)
+        
+        input_layout.add_widget(self.user_input)
+        input_layout.add_widget(self.send_btn)
+        main_layout.add_widget(input_layout)
+        
+        return main_layout
 
-        if response == "__EXIT__":
-            print("\nAI: Bye Boss! All data saved automatically. 👋")
-            break
+    def update_label_height(self, instance, value):
+        instance.height = instance.texture_size[1]
+        self.scroll.scroll_y = 0
 
-        print(f"\nAI: {response}\n")
+    def append_response(self, response_text):
+        self.chat_logs.text += f"{AI_NAME}: {response_text}\n"
+        self.send_btn.disabled = False
 
-    except (KeyboardInterrupt, Exception):
-        save_memory(memory)
-        print("\nAI: Bye! 👋")
-        break
+    def process_ai_in_background(self, text):
+        response = ai_reply(text)
+        Clock.schedule_once(lambda dt: self.append_response(response))
+
+    def send_message(self, instance):
+        text = self.user_input.text.strip()
+        if not text: return
+        
+        self.chat_logs.text += f"\nYou: {text}\n"
+        self.user_input.text = ""
+        self.send_btn.disabled = True
+        
+        # Run AI response in a separate thread so UI does not freeze
+        threading.Thread(target=self.process_ai_in_background, args=(text,), daemon=True).start()
+
+if __name__ == '__main__':
+    MainApp().run()
