@@ -46,7 +46,7 @@ jobs:
         mkdir -p $ANDROID_HOME/cmdline-tools/latest
         mv /tmp/cmdtools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
         
-        # Create legacy tools directory and symlink
+        # Create legacy tools directory and symlink so sdkmanager works flawlessly
         mkdir -p $ANDROID_HOME/tools/bin
         ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
         
@@ -60,10 +60,10 @@ jobs:
         unset ANDROIDSDK
         unset ANDROIDNDK
         
-        # Force python-for-android to use the clean local paths without host site-packages interference
+        # Force python-for-android to use clean paths without host site-packages interference
         export PYTHONNOUSERSITE=1
 
-        # Run buildozer cleanly with log level 2 for full details if needed
+        # Run buildozer
         buildozer -v android debug
 
     - name: Upload APK
