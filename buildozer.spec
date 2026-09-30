@@ -12,14 +12,14 @@ package.domain = org.shuvo
 # (str) Source code where the main.py lives
 source.dir = .
 
-# (list) Source files to include (let empty to include all the files)
+# (list) Source files to include
 source.include_exts = py,png,jpg,kv,atlas
 
 # (str) Application versioning
 version = 1.0
 
 # (list) Application requirements
-requirements = python3,kivy==2.3.0,requests
+requirements = python3,kivy,requests
 
 # (str) Supported orientation
 orientation = portrait
