@@ -28,7 +28,7 @@ CREATOR_NAME = "Shuvo"
 MEMORY_FILE = "shuvo_ai_v16_memory.json"
 
 # ============================================================
-# 🔑 API Keys (নিরাপদ উপায়: Environment Variable থেকে নেওয়া হবে)
+# 🔑 API Keys (GitHub Secrets / Environment Variable থেকে লোড হবে)
 # ============================================================
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
@@ -268,19 +268,17 @@ def ai_reply(user):
     if any(w in text for w in ["hello", "hi", "hey"]):
         return f"Hello Boss! 😄 Ami {AI_NAME}। Bolun apnake kivabe shahajjo korte pari?"
 
-    # Try AI Engine first
     ai_res = ask_ai_engines(user)
     if ai_res: return ai_res
 
-    # Wikipedia search fallback
     if any(k in text for k in ["wiki", "wikipedia", "what is", "who is", "ki", "kake bole"]):
         wiki_res = search_wikipedia(user)
         if wiki_res: return wiki_res
 
-    return f"Dukhito Boss, ami '{user}' bujhte parini. API key set na thakle AI engine kaj korbe na."
+    return f"Dukhito Boss, ami '{user}' bujhte parini. API Key set na thakle AI response pabe na."
 
 # ------------------------------------------------------------
-# 7. KIVY APPLICATION INTERFACE (THREADED & AUTO-WRAPPED)
+# 7. KIVY APPLICATION INTERFACE
 # ------------------------------------------------------------
 class MainApp(App):
     def build(self):
@@ -296,10 +294,8 @@ class MainApp(App):
             valign='top',
             markup=True
         )
-        # Fix for Text Wrapping on Mobile Screen
         self.chat_logs.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))
         self.chat_logs.bind(texture_size=self.update_label_height)
-        
         self.scroll.add_widget(self.chat_logs)
         main_layout.add_widget(self.scroll)
 
