@@ -74,8 +74,11 @@ jobs:
         unset ANDROID_NDK_ROOT
         unset ANDROID_NDK_LATEST_HOME
 
+        # Clean all previous build states completely
         rm -rf .buildozer/android/platform/build-*
+        rm -rf .buildozer/local/bin
 
+        # Run buildozer with standard verbose output
         buildozer -v android debug
 
     - name: Upload APK
