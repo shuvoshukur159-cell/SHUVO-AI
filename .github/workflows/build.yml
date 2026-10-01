@@ -73,6 +73,9 @@ jobs:
         unset ANDROID_NDK_ROOT
         unset ANDROID_NDK_LATEST_HOME
 
+        # Clean old corrupted build states
+        buildozer clean
+
         buildozer -v android debug
 
     - name: Upload APK
