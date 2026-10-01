@@ -73,6 +73,9 @@ jobs:
         unset ANDROID_NDK_ROOT
         unset ANDROID_NDK_LATEST_HOME
 
+        # Remove old platform build cache to avoid toolchain conflicts
+        rm -rf .buildozer/android/platform/build-*
+
         buildozer -v android debug
 
     - name: Upload APK
