@@ -28,7 +28,7 @@ jobs:
 
     - name: Install Python Dependencies
       run: |
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip setuptools wheel
         pip install buildozer cython==0.29.33
 
     - name: Setup Android SDK and NDK manually
@@ -75,7 +75,8 @@ jobs:
 
         rm -rf .buildozer/android/platform/build-*
 
-        buildozer -v android debug
+        # Running with explicit debug log level to output exact error trace if it fails
+        buildozer -v android debug --log_level=2
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
