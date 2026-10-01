@@ -31,10 +31,10 @@ fullscreen = 0
 android.permissions = INTERNET
 
 # (int) Target Android API
-android.api = 33
+android.api = 34
 
 # (int) Minimum API supported
-android.minapi = 21
+android.minapi = 24
 
 # (int) Android NDK version
 android.ndk = 25b
